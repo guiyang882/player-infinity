@@ -7,8 +7,6 @@
 
 一个完整的2048游戏实现，集成了多种AI启发式搜索算法。项目采用前后端分离架构，前端使用原生HTML/CSS/JavaScript，后端使用Python Flask提供AI算法服务。
 
-![2048 Game Demo](https://via.placeholder.com/600x400/f0f0f0/333333?text=2048+AI+Game+Demo)
-
 ## ✨ 主要特性
 
 - 🎯 **完整的2048游戏实现** - 支持所有标准游戏规则
@@ -21,7 +19,7 @@
 ## 🏗️ 项目结构
 
 ```
-2048-ai-game/
+player-infinity/
 ├── 📁 frontend/                 # 前端代码
 │   ├── 📄 index.html           # 游戏界面
 │   └── 📄 README.md            # 前端说明
@@ -45,8 +43,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/yourusername/2048-ai-game.git
-cd 2048-ai-game
+git clone https://github.com/guiyang882/player-infinity.git
+cd player-infinity
 
 # 运行启动脚本
 ./start_server.sh
@@ -56,8 +54,8 @@ cd 2048-ai-game
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/yourusername/2048-ai-game.git
-cd 2048-ai-game
+git clone https://github.com/guiyang882/player-infinity.git
+cd player-infinity
 
 # 2. 安装Python依赖
 cd backend
@@ -180,19 +178,7 @@ POST /api/ai_move/{ai_type}
 - **NumPy** - 数值计算
 - **Matplotlib** - 数据可视化（可选）
 
-### 开发工具
-- **Flask-CORS** - 跨域支持
-- **Git** - 版本控制
-
 ## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. **Fork** 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 **Pull Request**
 
 ### 开发建议
 
@@ -213,25 +199,7 @@ POST /api/ai_move/{ai_type}
 
 - [ ] 添加蒙特卡洛树搜索算法
 - [ ] 实现神经网络AI
-- [ ] 添加游戏回放功能
 - [ ] 支持不同网格大小
-- [ ] 添加在线排行榜
-- [ ] 移动端适配
-
-## 📄 许可证
-
-本项目使用 [MIT 许可证](LICENSE)
-
-## 🙏 致谢
-
-- 感谢 [2048 Game](https://github.com/gabrielecirulli/2048) 提供的游戏灵感
-- 感谢开源社区的算法实现参考
-
-## 📞 联系方式
-
-- **项目地址**: [GitHub Repository](https://github.com/yourusername/2048-ai-game)
-- **问题反馈**: [Issues](https://github.com/yourusername/2048-ai-game/issues)
-- **讨论交流**: [Discussions](https://github.com/yourusername/2048-ai-game/discussions)
 
 ---
 
