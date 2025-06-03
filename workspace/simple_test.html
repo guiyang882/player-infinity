@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 简化测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #faf8ef;
+            color: #776e65;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .game-container {
+            position: relative;
+            background-color: #bbada0;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 20px auto;
+            width: 500px;
+            height: 500px;
+        }
+
+        .grid-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .grid-row {
+            display: flex;
+        }
+
+        .grid-cell {
+            width: 107px;
+            height: 107px;
+            background-color: rgba(238, 228, 218, 0.35);
+            border-radius: 3px;
+            margin: 5px;
+        }
+
+        .tile-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        .tile {
+            width: 107px;
+            height: 107px;
+            background-color: #eee4da;
+            border-radius: 3px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            position: absolute;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .tile-2 { background-color: #eee4da; color: #776e65; }
+        .tile-4 { background-color: #ede0c8; color: #776e65; }
+
+        button {
+            background-color: #8f7a66;
+            color: #f9f6f2;
+            border: none;
+            border-radius: 3px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #9f8a76;
+        }
+
+        #debug-info {
+            margin: 20px 0;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2048 简化测试</h1>
+        
+        <div id="debug-info">
+            <h3>调试信息:</h3>
+            <div id="status">状态: 正在初始化...</div>
+        </div>
+
+        <div class="game-container">
+            <div class="grid-container" id="grid-container">
+                <!-- 4x4 网格 -->
+            </div>
+            <div class="tile-container" id="tile-container">
+                <!-- 数字方块 -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="initGame()">初始化游戏</button>
+            <button onclick="addTestTiles()">添加测试方块</button>
+            <button onclick="testMove()">测试移动</button>
+        </div>
+    </div>
+
+    <script>
+        let grid = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]
+        ];
+
+        function updateStatus(message) {
+            console.log(message);
+            document.getElementById('status').textContent = '状态: ' + message;
+        }
+
+        function initGame() {
+            updateStatus('初始化游戏网格...');
+            
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                const row = document.createElement('div');
+                row.className = 'grid-row';
+                for (let j = 0; j < 4; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    row.appendChild(cell);
+                }
+                gridContainer.appendChild(row);
+            }
+            
+            updateStatus('游戏网格初始化完成');
+        }
+
+        function addTestTiles() {
+            updateStatus('添加测试方块...');
+            
+            // 重置网格
+            grid = [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0]
+            ];
+            
+            // 添加测试方块
+            grid[0][0] = 2;
+            grid[0][1] = 4;
+            grid[1][0] = 8;
+            
+            updateDisplay();
+            updateStatus('测试方块添加完成');
+        }
+
+        function updateDisplay() {
+            const tileContainer = document.getElementById('tile-container');
+            tileContainer.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] !== 0) {
+                        const tile = document.createElement('div');
+                        tile.className = `tile tile-${grid[i][j]}`;
+                        tile.textContent = grid[i][j];
+                        tile.style.left = `${j * 117 + 15}px`;
+                        tile.style.top = `${i * 117 + 15}px`;
+                        tileContainer.appendChild(tile);
+                        console.log(`添加方块: ${grid[i][j]} 在位置 (${i}, ${j})`);
+                    }
+                }
+            }
+        }
+
+        function testMove() {
+            updateStatus('测试移动功能...');
+            
+            // 简单的左移测试
+            for (let i = 0; i < 4; i++) {
+                const row = grid[i].filter(val => val !== 0);
+                while (row.length < 4) {
+                    row.push(0);
+                }
+                grid[i] = row;
+            }
+            
+            updateDisplay();
+            updateStatus('移动测试完成');
+        }
+
+        // 页面加载时自动初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('页面加载完成');
+            initGame();
+            
+            // 自动添加测试方块
+            setTimeout(addTestTiles, 1000);
+        });
+
+        // 键盘事件
+        document.addEventListener('keydown', function(e) {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                updateStatus('检测到方向键: ' + e.key);
+            }
+        });
+    </script>
+</body>
+</html> 

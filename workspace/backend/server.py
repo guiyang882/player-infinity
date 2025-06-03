@@ -18,6 +18,11 @@ def index():
     """提供HTML页面"""
     return send_file('../frontend/index.html')
 
+@app.route('/test')
+def test_page():
+    """提供测试页面"""
+    return send_file('../simple_test.html')
+
 @app.route('/api/ai_move', methods=['POST'])
 def ai_move():
     """获取AI建议的移动方向"""
@@ -202,7 +207,7 @@ def make_move():
 
 if __name__ == '__main__':
     print("Starting 2048 Game Server...")
-    print("访问 http://localhost:5000 来玩游戏")
+    print("访问 http://127.0.0.1:5000 来玩游戏")
     print("API端点:")
     print("  POST /api/ai_move - 获取AI建议")
     print("  POST /api/ai_move/<ai_type> - 获取指定AI类型的建议")
@@ -210,4 +215,4 @@ if __name__ == '__main__':
     print("  POST /api/game/new - 创建新游戏")
     print("  POST /api/game/move - 执行移动")
     
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)
