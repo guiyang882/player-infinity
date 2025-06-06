@@ -174,6 +174,101 @@
             justify-content: center;
             gap: 10px;
         }
+
+        /* 算法选择模态框样式 */
+        .algorithm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .algorithm-modal-content {
+            background-color: #faf8ef;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .algorithm-modal h3 {
+            color: #776e65;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .algorithm-option {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #bbada0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .algorithm-option:hover {
+            background-color: #eee4da;
+            border-color: #8f7a66;
+        }
+
+        .algorithm-option.selected {
+            background-color: #8f7a66;
+            color: white;
+            border-color: #8f7a66;
+        }
+
+        .algorithm-option h4 {
+            margin: 0 0 5px 0;
+            color: inherit;
+        }
+
+        .algorithm-option p {
+            margin: 0;
+            font-size: 14px;
+            color: inherit;
+        }
+
+        .algorithm-modal-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .algorithm-modal-buttons button {
+            background-color: #8f7a66;
+            color: #f9f6f2;
+            border: none;
+            border-radius: 3px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        .algorithm-modal-buttons button:hover {
+            background-color: #9f8a76;
+        }
+
+        .algorithm-modal-buttons .cancel-btn {
+            background-color: #bbada0;
+        }
+
+        .algorithm-modal-buttons .cancel-btn:hover {
+            background-color: #cbb5a6;
+        }
+
+        .current-algorithm {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #776e65;
+        }
     </style>
 </head>
 <body>
@@ -210,13 +305,44 @@
 
         <div class="ai-controls">
             <button class="ai-button" onclick="game.makeAIMove()">AI 走一步</button>
-            <button class="ai-button" onclick="game.autoPlay()">自动游戏</button>
+            <button class="ai-button" onclick="game.showAlgorithmSelection()">自动游戏</button>
             <button class="ai-button" onclick="game.stopAutoPlay()">停止自动</button>
+        </div>
+
+        <div class="current-algorithm" id="current-algorithm">
+            当前算法: 随机算法
         </div>
 
         <div class="instructions">
             <p><strong>使用方法:</strong> 使用方向键移动数字方块。当两个相同数字的方块相碰时，它们会合并成一个！</p>
             <p><strong>目标:</strong> 创造出2048方块获得胜利！</p>
+        </div>
+    </div>
+
+    <!-- 算法选择模态框 -->
+    <div class="algorithm-modal" id="algorithm-modal">
+        <div class="algorithm-modal-content">
+            <h3>选择AI算法</h3>
+            <div class="algorithm-option" data-algorithm="random">
+                <h4>随机算法</h4>
+                <p>随机选择有效的移动方向，简单但效果有限</p>
+            </div>
+            <div class="algorithm-option" data-algorithm="greedy">
+                <h4>贪心算法</h4>
+                <p>选择能获得最高即时分数的移动，追求短期收益</p>
+            </div>
+            <div class="algorithm-option" data-algorithm="corner">
+                <h4>角落策略</h4>
+                <p>尝试将最大数字保持在角落，保持游戏板的有序性</p>
+            </div>
+            <div class="algorithm-option" data-algorithm="expectimax">
+                <h4>期望值算法</h4>
+                <p>计算每种移动的期望分数，选择最优策略（较慢但效果好）</p>
+            </div>
+            <div class="algorithm-modal-buttons">
+                <button onclick="game.startAutoPlayWithAlgorithm()">开始自动游戏</button>
+                <button class="cancel-btn" onclick="game.hideAlgorithmSelection()">取消</button>
+            </div>
         </div>
     </div>
 
@@ -234,12 +360,14 @@
                 this.gameWon = false;
                 this.gameOver = false;
                 this.autoPlayInterval = null;
+                this.currentAlgorithm = 'random';
                 this.init();
             }
 
             init() {
                 this.setupGrid();
                 this.addEventListeners();
+                this.setupAlgorithmSelection();
                 this.restart();
             }
 
@@ -594,32 +722,81 @@
                 });
             }
 
-            // AI相关方法
-            async makeAIMove() {
-                try {
-                    const response = await fetch('/api/ai_move', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            grid: this.grid,
-                            score: this.score
-                        })
+            setupAlgorithmSelection() {
+                const options = document.querySelectorAll('.algorithm-option');
+                options.forEach(option => {
+                    option.addEventListener('click', () => {
+                        // 移除所有选中状态
+                        options.forEach(opt => opt.classList.remove('selected'));
+                        // 添加选中状态
+                        option.classList.add('selected');
+                        // 设置当前算法
+                        this.currentAlgorithm = option.dataset.algorithm;
                     });
-                    
-                    const data = await response.json();
-                    if (data.direction) {
-                        this.move(data.direction);
-                    }
-                } catch (error) {
-                    console.error('AI move failed:', error);
-                    // 如果后端不可用，使用简单的随机策略
-                    this.makeRandomMove();
+                });
+                
+                // 默认选中随机算法
+                const defaultOption = document.querySelector('[data-algorithm="random"]');
+                if (defaultOption) {
+                    defaultOption.classList.add('selected');
                 }
             }
 
-            makeRandomMove() {
+            // 算法选择相关方法
+            showAlgorithmSelection() {
+                const modal = document.getElementById('algorithm-modal');
+                modal.style.display = 'flex';
+            }
+
+            hideAlgorithmSelection() {
+                const modal = document.getElementById('algorithm-modal');
+                modal.style.display = 'none';
+            }
+
+            startAutoPlayWithAlgorithm() {
+                this.hideAlgorithmSelection();
+                this.updateCurrentAlgorithmDisplay();
+                this.autoPlay();
+            }
+
+            updateCurrentAlgorithmDisplay() {
+                const algorithmNames = {
+                    'random': '随机算法',
+                    'greedy': '贪心算法',
+                    'corner': '角落策略',
+                    'expectimax': '期望值算法'
+                };
+                const currentAlgorithmElement = document.getElementById('current-algorithm');
+                if (currentAlgorithmElement) {
+                    currentAlgorithmElement.textContent = `当前算法: ${algorithmNames[this.currentAlgorithm]}`;
+                }
+            }
+
+            // AI相关方法
+            async makeAIMove() {
+                const direction = this.getAIMove();
+                if (direction) {
+                    this.move(direction);
+                }
+            }
+
+            getAIMove() {
+                switch (this.currentAlgorithm) {
+                    case 'random':
+                        return this.getRandomMove();
+                    case 'greedy':
+                        return this.getGreedyMove();
+                    case 'corner':
+                        return this.getCornerMove();
+                    case 'expectimax':
+                        return this.getExpectimaxMove();
+                    default:
+                        return this.getRandomMove();
+                }
+            }
+
+            // 随机算法
+            getRandomMove() {
                 const directions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
                 const validMoves = directions.filter(dir => {
                     const testGrid = this.grid.map(row => [...row]);
@@ -627,8 +804,207 @@
                 });
                 
                 if (validMoves.length > 0) {
-                    const randomDirection = validMoves[Math.floor(Math.random() * validMoves.length)];
-                    this.move(randomDirection);
+                    return validMoves[Math.floor(Math.random() * validMoves.length)];
+                }
+                return null;
+            }
+
+            // 贪心算法
+            getGreedyMove() {
+                const directions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+                let bestMove = null;
+                let bestScore = -1;
+                
+                for (const direction of directions) {
+                    const testGrid = this.grid.map(row => [...row]);
+                    const currentScore = this.score;
+                    
+                    if (this.testMove(direction, testGrid)) {
+                        const scoreGain = this.calculateScore(testGrid) - currentScore;
+                        if (scoreGain > bestScore) {
+                            bestScore = scoreGain;
+                            bestMove = direction;
+                        }
+                    }
+                }
+                
+                return bestMove;
+            }
+
+            // 角落策略
+            getCornerMove() {
+                const directions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+                let bestMove = null;
+                let bestScore = -Infinity;
+                
+                for (const direction of directions) {
+                    const testGrid = this.grid.map(row => [...row]);
+                    
+                    if (this.testMove(direction, testGrid)) {
+                        const score = this.evaluateCornerStrategy(testGrid);
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = direction;
+                        }
+                    }
+                }
+                
+                return bestMove;
+            }
+
+            // 期望值算法（简化版）
+            getExpectimaxMove() {
+                const directions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+                let bestMove = null;
+                let bestScore = -Infinity;
+                
+                for (const direction of directions) {
+                    const testGrid = this.grid.map(row => [...row]);
+                    
+                    if (this.testMove(direction, testGrid)) {
+                        const score = this.expectimax(testGrid, 2, false);
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = direction;
+                        }
+                    }
+                }
+                
+                return bestMove;
+            }
+
+            // 辅助方法
+            calculateScore(grid) {
+                let score = 0;
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] > 0) {
+                            score += grid[i][j];
+                        }
+                    }
+                }
+                return score;
+            }
+
+            evaluateCornerStrategy(grid) {
+                let score = 0;
+                const maxValue = Math.max(...grid.flat());
+                
+                // 检查最大值是否在角落
+                const corners = [grid[0][0], grid[0][3], grid[3][0], grid[3][3]];
+                if (corners.includes(maxValue)) {
+                    score += maxValue * 10;
+                }
+                
+                // 单调性奖励
+                score += this.calculateMonotonicity(grid);
+                
+                // 平滑性奖励
+                score += this.calculateSmoothness(grid);
+                
+                // 空格奖励
+                score += this.countEmptyTiles(grid) * 100;
+                
+                return score;
+            }
+
+            calculateMonotonicity(grid) {
+                let score = 0;
+                
+                // 行单调性
+                for (let i = 0; i < 4; i++) {
+                    let increasing = 0, decreasing = 0;
+                    for (let j = 0; j < 3; j++) {
+                        if (grid[i][j] <= grid[i][j + 1]) increasing++;
+                        if (grid[i][j] >= grid[i][j + 1]) decreasing++;
+                    }
+                    score += Math.max(increasing, decreasing);
+                }
+                
+                // 列单调性
+                for (let j = 0; j < 4; j++) {
+                    let increasing = 0, decreasing = 0;
+                    for (let i = 0; i < 3; i++) {
+                        if (grid[i][j] <= grid[i + 1][j]) increasing++;
+                        if (grid[i][j] >= grid[i + 1][j]) decreasing++;
+                    }
+                    score += Math.max(increasing, decreasing);
+                }
+                
+                return score * 10;
+            }
+
+            calculateSmoothness(grid) {
+                let score = 0;
+                
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] !== 0) {
+                            // 检查右邻居
+                            if (j < 3 && grid[i][j + 1] !== 0) {
+                                score -= Math.abs(Math.log2(grid[i][j]) - Math.log2(grid[i][j + 1]));
+                            }
+                            // 检查下邻居
+                            if (i < 3 && grid[i + 1][j] !== 0) {
+                                score -= Math.abs(Math.log2(grid[i][j]) - Math.log2(grid[i + 1][j]));
+                            }
+                        }
+                    }
+                }
+                
+                return score;
+            }
+
+            countEmptyTiles(grid) {
+                let count = 0;
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] === 0) count++;
+                    }
+                }
+                return count;
+            }
+
+            expectimax(grid, depth, isPlayerTurn) {
+                if (depth === 0) {
+                    return this.evaluateCornerStrategy(grid);
+                }
+                
+                if (isPlayerTurn) {
+                    let maxScore = -Infinity;
+                    const directions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+                    
+                    for (const direction of directions) {
+                        const testGrid = grid.map(row => [...row]);
+                        if (this.testMove(direction, testGrid)) {
+                            const score = this.expectimax(testGrid, depth - 1, false);
+                            maxScore = Math.max(maxScore, score);
+                        }
+                    }
+                    
+                    return maxScore === -Infinity ? 0 : maxScore;
+                } else {
+                    let totalScore = 0;
+                    let count = 0;
+                    
+                    for (let i = 0; i < 4; i++) {
+                        for (let j = 0; j < 4; j++) {
+                            if (grid[i][j] === 0) {
+                                // 尝试放置2
+                                const testGrid2 = grid.map(row => [...row]);
+                                testGrid2[i][j] = 2;
+                                totalScore += this.expectimax(testGrid2, depth - 1, true) * 0.9;
+                                count++;
+                                
+                                // 尝试放置4
+                                const testGrid4 = grid.map(row => [...row]);
+                                testGrid4[i][j] = 4;
+                                totalScore += this.expectimax(testGrid4, depth - 1, true) * 0.1;
+                            }
+                        }
+                    }
+                    
+                    return count > 0 ? totalScore / count : 0;
                 }
             }
 
