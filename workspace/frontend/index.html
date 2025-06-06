@@ -817,14 +817,25 @@
                 
                 for (const direction of directions) {
                     const testGrid = this.grid.map(row => [...row]);
-                    const currentScore = this.score;
+                    let tempScore = 0; // 临时分数变量来模拟移动
                     
-                    if (this.testMove(direction, testGrid)) {
-                        const scoreGain = this.calculateScore(testGrid) - currentScore;
-                        if (scoreGain > bestScore) {
-                            bestScore = scoreGain;
-                            bestMove = direction;
-                        }
+                    // 模拟移动并计算实际得分
+                    const scoreGain = this.simulateMove(direction, testGrid);
+                    
+                    if (scoreGain > bestScore) {
+                        bestScore = scoreGain;
+                        bestMove = direction;
+                    }
+                }
+                
+                // 如果没有找到有分数增益的移动，随便选一个有效移动
+                if (!bestMove) {
+                    const validMoves = directions.filter(dir => {
+                        const testGrid = this.grid.map(row => [...row]);
+                        return this.testMove(dir, testGrid);
+                    });
+                    if (validMoves.length > 0) {
+                        bestMove = validMoves[0];
                     }
                 }
                 
@@ -874,6 +885,144 @@
             }
 
             // 辅助方法
+            simulateMove(direction, grid) {
+                let scoreGain = 0;
+                let moved = false;
+                
+                switch (direction) {
+                    case 'ArrowLeft':
+                        moved = this.simulateMoveLeft(grid, (points) => { scoreGain += points; });
+                        break;
+                    case 'ArrowRight':
+                        moved = this.simulateMoveRight(grid, (points) => { scoreGain += points; });
+                        break;
+                    case 'ArrowUp':
+                        moved = this.simulateMoveUp(grid, (points) => { scoreGain += points; });
+                        break;
+                    case 'ArrowDown':
+                        moved = this.simulateMoveDown(grid, (points) => { scoreGain += points; });
+                        break;
+                }
+                
+                return moved ? scoreGain : -1;
+            }
+
+            simulateMoveLeft(grid, addScore) {
+                let moved = false;
+                for (let i = 0; i < 4; i++) {
+                    const row = grid[i].filter(val => val !== 0);
+                    for (let j = 0; j < row.length - 1; j++) {
+                        if (row[j] === row[j + 1]) {
+                            row[j] *= 2;
+                            addScore(row[j]);
+                            row.splice(j + 1, 1);
+                        }
+                    }
+                    while (row.length < 4) {
+                        row.push(0);
+                    }
+                    
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] !== row[j]) {
+                            moved = true;
+                        }
+                        grid[i][j] = row[j];
+                    }
+                }
+                return moved;
+            }
+
+            simulateMoveRight(grid, addScore) {
+                let moved = false;
+                for (let i = 0; i < 4; i++) {
+                    const row = grid[i].filter(val => val !== 0);
+                    for (let j = row.length - 1; j > 0; j--) {
+                        if (row[j] === row[j - 1]) {
+                            row[j] *= 2;
+                            addScore(row[j]);
+                            row.splice(j - 1, 1);
+                            j--;
+                        }
+                    }
+                    while (row.length < 4) {
+                        row.unshift(0);
+                    }
+                    
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] !== row[j]) {
+                            moved = true;
+                        }
+                        grid[i][j] = row[j];
+                    }
+                }
+                return moved;
+            }
+
+            simulateMoveUp(grid, addScore) {
+                let moved = false;
+                for (let j = 0; j < 4; j++) {
+                    const column = [];
+                    for (let i = 0; i < 4; i++) {
+                        if (grid[i][j] !== 0) {
+                            column.push(grid[i][j]);
+                        }
+                    }
+                    
+                    for (let i = 0; i < column.length - 1; i++) {
+                        if (column[i] === column[i + 1]) {
+                            column[i] *= 2;
+                            addScore(column[i]);
+                            column.splice(i + 1, 1);
+                        }
+                    }
+                    
+                    while (column.length < 4) {
+                        column.push(0);
+                    }
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (grid[i][j] !== column[i]) {
+                            moved = true;
+                        }
+                        grid[i][j] = column[i];
+                    }
+                }
+                return moved;
+            }
+
+            simulateMoveDown(grid, addScore) {
+                let moved = false;
+                for (let j = 0; j < 4; j++) {
+                    const column = [];
+                    for (let i = 0; i < 4; i++) {
+                        if (grid[i][j] !== 0) {
+                            column.push(grid[i][j]);
+                        }
+                    }
+                    
+                    for (let i = column.length - 1; i > 0; i--) {
+                        if (column[i] === column[i - 1]) {
+                            column[i] *= 2;
+                            addScore(column[i]);
+                            column.splice(i - 1, 1);
+                            i--;
+                        }
+                    }
+                    
+                    while (column.length < 4) {
+                        column.unshift(0);
+                    }
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (grid[i][j] !== column[i]) {
+                            moved = true;
+                        }
+                        grid[i][j] = column[i];
+                    }
+                }
+                return moved;
+            }
+
             calculateScore(grid) {
                 let score = 0;
                 for (let i = 0; i < 4; i++) {
