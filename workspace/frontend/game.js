@@ -425,13 +425,43 @@ class Game2048 {
 
     // AI相关方法
     async makeAIMove() {
-        const direction = this.getAIMove();
+        const direction = await this.getAIMove();
         if (direction) {
             this.move(direction);
         }
     }
 
-    getAIMove() {
+    async getAIMove() {
+        // 调用后端Python算法
+        try {
+            const response = await fetch(`/api/ai_move/${this.currentAlgorithm}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    grid: this.grid,
+                    score: this.score
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Backend AI response:', data);
+            return data.direction;
+        } catch (error) {
+            console.error('Error calling backend AI:', error);
+            // 如果后端调用失败，回退到前端算法
+            return this.getFallbackAIMove();
+        }
+    }
+
+    // 备用的前端算法（当后端不可用时使用）
+    getFallbackAIMove() {
+        console.log('Using fallback frontend AI algorithms');
         switch (this.currentAlgorithm) {
             case 'random':
                 return this.getRandomMove();
