@@ -1,0 +1,264 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #faf8ef;
+    color: #776e65;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 473px;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 48px;
+    margin: 20px 0;
+    color: #776e65;
+}
+
+.score-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.score-box {
+    background-color: #bbada0;
+    padding: 10px 20px;
+    border-radius: 3px;
+    color: white;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.game-container {
+    position: relative;
+    background-color: #bbada0;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 20px auto;
+    width: 473px;
+    height: 473px;
+}
+
+.grid-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1;
+}
+
+.grid-row {
+    display: flex;
+}
+
+.grid-cell {
+    width: 107px;
+    height: 107px;
+    background-color: rgba(238, 228, 218, 0.35);
+    border-radius: 3px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+
+.grid-cell:last-child {
+    margin-right: 0;
+}
+
+.grid-row:last-child .grid-cell {
+    margin-bottom: 0;
+}
+
+.tile-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 2;
+}
+
+.tile {
+    width: 107px;
+    height: 107px;
+    background-color: #eee4da;
+    border-radius: 3px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    position: absolute;
+    transition: all 0.15s ease-in-out;
+}
+
+.tile-2 { background-color: #eee4da; color: #776e65; }
+.tile-4 { background-color: #ede0c8; color: #776e65; }
+.tile-8 { background-color: #f2b179; color: #f9f6f2; }
+.tile-16 { background-color: #f59563; color: #f9f6f2; }
+.tile-32 { background-color: #f67c5f; color: #f9f6f2; }
+.tile-64 { background-color: #f65e3b; color: #f9f6f2; }
+.tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: 28px; }
+.tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: 28px; }
+.tile-512 { background-color: #edc850; color: #f9f6f2; font-size: 28px; }
+.tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: 24px; }
+.tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: 24px; }
+
+.game-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(238, 228, 218, 0.73);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    border-radius: 6px;
+    display: none;
+}
+
+.game-message.game-won {
+    background-color: rgba(237, 194, 46, 0.5);
+    color: #f9f6f2;
+}
+
+.game-message.game-over {
+    background-color: rgba(238, 228, 218, 0.73);
+    color: #776e65;
+}
+
+.game-message p {
+    font-size: 60px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.restart-button, .ai-button {
+    background-color: #8f7a66;
+    color: #f9f6f2;
+    border: none;
+    border-radius: 3px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.restart-button:hover, .ai-button:hover {
+    background-color: #9f8a76;
+}
+
+.controls {
+    margin: 20px 0;
+}
+
+.instructions {
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ai-controls {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* 算法选择模态框样式 */
+.algorithm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.algorithm-modal-content {
+    background-color: #faf8ef;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.algorithm-modal h3 {
+    color: #776e65;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 24px;
+}
+
+.algorithm-option {
+    margin: 15px 0;
+    padding: 15px;
+    border: 2px solid #bbada0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.algorithm-option:hover {
+    background-color: #eee4da;
+    border-color: #8f7a66;
+}
+
+.algorithm-option.selected {
+    background-color: #8f7a66;
+    color: white;
+    border-color: #8f7a66;
+}
+
+.algorithm-option h4 {
+    margin: 0 0 5px 0;
+    color: inherit;
+}
+
+.algorithm-option p {
+    margin: 0;
+    font-size: 14px;
+    color: inherit;
+}
+
+.algorithm-modal-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.algorithm-modal-buttons button {
+    background-color: #8f7a66;
+    color: #f9f6f2;
+    border: none;
+    border-radius: 3px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+.algorithm-modal-buttons button:hover {
+    background-color: #9f8a76;
+}
+
+.algorithm-modal-buttons .cancel-btn {
+    background-color: #bbada0;
+}
+
+.algorithm-modal-buttons .cancel-btn:hover {
+    background-color: #cbb5a6;
+}
+
+.current-algorithm {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #776e65;
+}

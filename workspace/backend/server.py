@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import os
 from game_2048 import Game2048
@@ -17,6 +17,21 @@ corner_ai = CornerAI()
 def index():
     """提供HTML页面"""
     return send_file('../frontend/index.html')
+
+@app.route('/styles.css')
+def styles():
+    """提供CSS文件"""
+    return send_file('../frontend/styles.css', mimetype='text/css')
+
+@app.route('/game.js')
+def game_js():
+    """提供JavaScript文件"""
+    return send_file('../frontend/game.js', mimetype='application/javascript')
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    """提供静态文件"""
+    return send_from_directory('../frontend', filename)
 
 @app.route('/test')
 def test_page():
