@@ -16,17 +16,12 @@ corner_ai = CornerAI()
 @app.route('/')
 def index():
     """提供HTML页面"""
-    return send_file('../frontend/index.html')
+    return send_file('../index.html')
 
-@app.route('/styles.css')
-def styles():
-    """提供CSS文件"""
-    return send_file('../frontend/styles.css', mimetype='text/css')
-
-@app.route('/game.js')
-def game_js():
-    """提供JavaScript文件"""
-    return send_file('../frontend/game.js', mimetype='application/javascript')
+@app.route('/frontend/<path:filename>')
+def frontend_files(filename):
+    """提供前端文件"""
+    return send_from_directory('../frontend', filename)
 
 @app.route('/static/<path:filename>')
 def static_files(filename):

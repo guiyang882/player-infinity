@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏中心测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .games-container {
+            display: block;
+            margin: 30px 0;
+        }
+        
+        .game-card {
+            background: #f9f9f9;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-5px);
+        }
+        
+        .game-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .game-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .game-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .game-card:hover .game-desc {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 游戏中心</h1>
+        <p>选择你喜欢的游戏开始玩吧！</p>
+        
+        <div class="games-container">
+            <div class="game-card" onclick="window.location.href='2048/index.html'">
+                <div class="game-icon">🔢</div>
+                <div class="game-title">2048</div>
+                <div class="game-desc">经典数字合并游戏</div>
+            </div>
+            
+            <div class="game-card" onclick="window.location.href='snake/index.html'">
+                <div class="game-icon">🐍</div>
+                <div class="game-title">贪吃蛇</div>
+                <div class="game-desc">经典街机游戏</div>
+            </div>
+        </div>
+        
+        <p style="color: #999; margin-top: 30px;">更多游戏正在开发中...</p>
+    </div>
+</body>
+</html> 
