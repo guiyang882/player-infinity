@@ -262,3 +262,26 @@ h1 {
     font-size: 14px;
     color: #776e65;
 }
+
+/* 返回按钮样式 */
+.back-to-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.back-to-home a {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #8f7a66;
+    color: #f9f6f2;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.back-to-home a:hover {
+    background-color: #9f8a76;
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇游戏</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="back-to-home">
+        <a href="../index.html">← 返回游戏中心</a>
+    </div>
+    
+    <div class="container">
+        <h1>🐍 贪吃蛇</h1>
+        
+        <div class="game-info">
+            <div class="score-container">
+                <div class="score-item">
+                    <span>分数</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="score-item">
+                    <span>最高分</span>
+                    <span id="high-score">0</span>
+                </div>
+                <div class="score-item">
+                    <span>长度</span>
+                    <span id="length">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div class="game-over" id="gameOver">
+                <h2>游戏结束！</h2>
+                <p>最终分数: <span id="finalScore">0</span></p>
+                <button onclick="startGame()">重新开始</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="startGame()" id="startBtn">开始游戏</button>
+            <button onclick="pauseGame()" id="pauseBtn">暂停</button>
+            <button onclick="resumeGame()" id="resumeBtn" style="display: none;">继续</button>
+        </div>
+
+        <div class="speed-control">
+            <label for="speedSlider">游戏速度:</label>
+            <input type="range" id="speedSlider" min="1" max="10" value="5">
+            <span id="speedValue">5</span>
+        </div>
+
+        <div class="mobile-controls" id="mobileControls">
+            <div class="control-row">
+                <button class="control-btn" data-direction="up">↑</button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn" data-direction="left">←</button>
+                <button class="control-btn" data-direction="down">↓</button>
+                <button class="control-btn" data-direction="right">→</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>游戏说明</h3>
+            <ul>
+                <li><strong>目标:</strong> 控制蛇吃食物，让蛇变得更长</li>
+                <li><strong>操作:</strong> 使用方向键或点击下方按钮控制蛇的移动方向</li>
+                <li><strong>规则:</strong> 蛇不能碰到墙壁或自己的身体</li>
+                <li><strong>得分:</strong> 每吃一个食物得10分</li>
+                <li><strong>技巧:</strong> 调节游戏速度来适应你的水平</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 

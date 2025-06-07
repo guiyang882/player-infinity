@@ -3,84 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048 游戏</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>游戏中心</title>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
     <div class="container">
-        <h1>2048</h1>
+        <h1>游戏中心</h1>
+        <p class="subtitle">选择你喜欢的游戏开始玩吧！</p>
         
-        <div class="score-container">
-            <div class="score-box">
-                <div>分数</div>
-                <div id="score">0</div>
+        <div class="games-grid">
+            <div class="game-card" onclick="window.location.href='2048/index.html'">
+                <div class="game-icon">🔢</div>
+                <h3>2048</h3>
+                <p>经典数字合并游戏，挑战你的逻辑思维！</p>
+                <div class="game-features">
+                    <span class="feature">AI辅助</span>
+                    <span class="feature">多种算法</span>
+                </div>
             </div>
-            <div class="score-box">
-                <div>最高分</div>
-                <div id="best">0</div>
-            </div>
-        </div>
-
-        <div class="game-container">
-            <div class="grid-container" id="grid-container">
-                <!-- 4x4 网格 -->
-            </div>
-            <div class="tile-container" id="tile-container">
-                <!-- 数字方块 -->
-            </div>
-            <div class="game-message" id="game-message">
-                <p id="message-text"></p>
-                <button class="restart-button" onclick="game.restart()">重新开始</button>
+            
+            <div class="game-card" onclick="window.location.href='snake/index.html'">
+                <div class="game-icon">🐍</div>
+                <h3>贪吃蛇</h3>
+                <p>经典街机游戏，控制小蛇吃食物变长！</p>
+                <div class="game-features">
+                    <span class="feature">经典模式</span>
+                    <span class="feature">计分系统</span>
+                </div>
             </div>
         </div>
-
-        <div class="controls">
-            <button class="restart-button" onclick="game.restart()">重新开始</button>
-        </div>
-
-        <div class="ai-controls">
-            <button class="ai-button" onclick="game.makeAIMove()">AI 走一步</button>
-            <button class="ai-button" onclick="game.showAlgorithmSelection()">自动游戏</button>
-            <button class="ai-button" onclick="game.stopAutoPlay()">停止自动</button>
-        </div>
-
-        <div class="current-algorithm" id="current-algorithm">
-            当前算法: 随机算法
-        </div>
-
-        <div class="instructions">
-            <p><strong>使用方法:</strong> 使用方向键移动数字方块。当两个相同数字的方块相碰时，它们会合并成一个！</p>
-            <p><strong>目标:</strong> 创造出2048方块获得胜利！</p>
+        
+        <div class="footer">
+            <p>更多游戏正在开发中...</p>
         </div>
     </div>
-
-    <!-- 算法选择模态框 -->
-    <div class="algorithm-modal" id="algorithm-modal">
-        <div class="algorithm-modal-content">
-            <h3>选择AI算法</h3>
-            <div class="algorithm-option" data-algorithm="random">
-                <h4>随机算法</h4>
-                <p>随机选择有效的移动方向，简单但效果有限</p>
-            </div>
-            <div class="algorithm-option" data-algorithm="greedy">
-                <h4>贪心算法</h4>
-                <p>选择能获得最高即时分数的移动，追求短期收益</p>
-            </div>
-            <div class="algorithm-option" data-algorithm="corner">
-                <h4>角落策略</h4>
-                <p>尝试将最大数字保持在角落，保持游戏板的有序性</p>
-            </div>
-            <div class="algorithm-option" data-algorithm="expectimax">
-                <h4>期望值算法</h4>
-                <p>计算每种移动的期望分数，选择最优策略（较慢但效果好）</p>
-            </div>
-            <div class="algorithm-modal-buttons">
-                <button onclick="game.startAutoPlayWithAlgorithm()">开始自动游戏</button>
-                <button class="cancel-btn" onclick="game.hideAlgorithmSelection()">取消</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="game.js"></script>
 </body>
 </html>
