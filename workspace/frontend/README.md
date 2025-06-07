@@ -31,6 +31,11 @@ frontend/
 - **特性**: 经典街机游戏，支持键盘和触屏控制
 - **技术**: HTML5 Canvas + CSS3 + JavaScript
 
+### 3. Breakout 弹珠台
+- **路径**: `/breakout/index.html`
+- **特性**: 经典弹珠台游戏，支持多难度、粒子效果、鼠标和键盘控制
+- **技术**: HTML5 Canvas + CSS3 + JavaScript
+
 ## ➕ 添加新游戏
 
 要添加新游戏，请按照以下步骤：

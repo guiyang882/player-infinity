@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout 弹珠台</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="back-to-home">
+        <a href="../../">← 返回游戏中心</a>
+    </div>
+    
+    <div class="container">
+        <h1>🎯 Breakout 弹珠台</h1>
+        
+        <div class="game-info">
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span>分数</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>生命值</span>
+                    <span id="lives">3</span>
+                </div>
+                <div class="stat-item">
+                    <span>关卡</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>剩余砖块</span>
+                    <span id="bricks">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div class="game-message" id="gameMessage">
+                <h2 id="messageTitle">游戏暂停</h2>
+                <p id="messageText">按空格键继续游戏</p>
+                <div class="message-buttons">
+                    <button id="startBtn">开始游戏</button>
+                    <button id="pauseBtn" style="display: none;">暂停</button>
+                    <button id="resumeBtn" style="display: none;">继续</button>
+                    <button id="restartBtn" style="display: none;">重新开始</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-section">
+                <h3>游戏控制</h3>
+                <div class="control-buttons">
+                    <button onclick="startGame()" id="startButton">开始游戏</button>
+                    <button onclick="pauseGame()" id="pauseButton">暂停</button>
+                    <button onclick="restartGame()" id="restartButton">重新开始</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>难度设置</h3>
+                <div class="difficulty-buttons">
+                    <button onclick="setDifficulty('easy')" class="difficulty-btn active" data-level="easy">简单</button>
+                    <button onclick="setDifficulty('normal')" class="difficulty-btn" data-level="normal">普通</button>
+                    <button onclick="setDifficulty('hard')" class="difficulty-btn" data-level="hard">困难</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-controls" id="mobileControls">
+            <div class="paddle-control">
+                <button class="paddle-btn" id="leftBtn" ontouchstart="startMoving('left')" ontouchend="stopMoving()" onmousedown="startMoving('left')" onmouseup="stopMoving()">←</button>
+                <div class="control-info">挡板控制</div>
+                <button class="paddle-btn" id="rightBtn" ontouchstart="startMoving('right')" ontouchend="stopMoving()" onmousedown="startMoving('right')" onmouseup="stopMoving()">→</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>游戏说明</h3>
+            <div class="instruction-grid">
+                <div class="instruction-item">
+                    <strong>🎯 目标：</strong>
+                    <p>用挡板反弹小球，击破所有砖块</p>
+                </div>
+                <div class="instruction-item">
+                    <strong>🎮 操作：</strong>
+                    <p>鼠标移动或方向键控制挡板</p>
+                </div>
+                <div class="instruction-item">
+                    <strong>⚡ 得分：</strong>
+                    <p>不同颜色砖块分值不同</p>
+                </div>
+                <div class="instruction-item">
+                    <strong>❤️ 生命：</strong>
+                    <p>小球落底失去一条生命</p>
+                </div>
+                <div class="instruction-item">
+                    <strong>🏆 通关：</strong>
+                    <p>击破所有砖块进入下一关</p>
+                </div>
+                <div class="instruction-item">
+                    <strong>⏸️ 暂停：</strong>
+                    <p>按空格键暂停/继续游戏</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 
