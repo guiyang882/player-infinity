@@ -285,3 +285,66 @@ h1 {
 .back-to-home a:hover {
     background-color: #9f8a76;
 }
+
+.mcts-param-float-box {
+    position: fixed;
+    top: 50%;
+    right: 24px;
+    transform: translateY(-50%);
+    width: 300px;
+    border: 2px solid #bbada0;
+    border-radius: 14px;
+    background: #f9f6f2;
+    box-shadow: 0 2px 8px rgba(187,173,160,0.10);
+    padding: 16px 16px 8px 16px;
+    z-index: 100;
+    color: #8f7a66;
+}
+
+.mcts-params-panel {
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+.mcts-params-panel h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #8f7a66;
+    font-weight: bold;
+    text-align: left;
+    letter-spacing: 1px;
+}
+
+.param-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 7px;
+}
+
+.param-row label {
+    flex: 0 0 110px;
+    text-align: right;
+    margin-right: 8px;
+    font-size: 14px;
+    color: #8f7a66;
+}
+
+.param-row input[type=range] {
+    flex: 1 1 110px;
+    margin: 0 8px;
+    accent-color: #bbada0;
+    height: 3px;
+}
+
+.param-row span {
+    width: 38px;
+    display: inline-block;
+    text-align: left;
+    font-weight: bold;
+    color: #8f7a66;
+    font-size: 14px;
+}

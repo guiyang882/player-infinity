@@ -5,7 +5,7 @@
 以便于维护和扩展。保持向后兼容性。
 """
 
-from algorithm import ExpectimaxAI, GreedyAI, RandomAI, CornerAI, config
+from algorithm import ExpectimaxAI, GreedyAI, RandomAI, CornerAI, MCTSAI, config
 
 # 为了保持向后兼容性，重新导出原有的类名
 AI2048Solver = ExpectimaxAI
@@ -38,7 +38,8 @@ def create_ai(algorithm_name: str, **kwargs):
         'expectimax': ExpectimaxAI,
         'greedy': GreedyAI,
         'random': RandomAI,
-        'corner': CornerAI
+        'corner': CornerAI,
+        'mcts': MCTSAI
     }
     
     if algorithm_name.lower() not in algorithms:

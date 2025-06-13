@@ -47,5 +47,11 @@ ALGORITHM_INFO = {
         'description': '角落策略 - 尽量把大数字推向角落',
         'complexity': 'Low',
         'performance': 'Fair'
+    },
+    'mcts': {
+        'name': 'MCTS AI',
+        'description': '蒙特卡洛树搜索算法 - 通过模拟获得更优解',
+        'complexity': 'High',
+        'performance': 'Excellent'
     }
 } 

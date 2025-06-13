@@ -415,7 +415,8 @@ class Game2048 {
             'random': '随机算法',
             'greedy': '贪心算法',
             'corner': '角落策略',
-            'expectimax': '期望值算法'
+            'expectimax': '期望值算法',
+            'mcts': '蒙特卡洛树搜索'
         };
         const currentAlgorithmElement = document.getElementById('current-algorithm');
         if (currentAlgorithmElement) {
@@ -431,24 +432,38 @@ class Game2048 {
         }
     }
 
+    getMCTSParams() {
+        // 获取参数面板的值
+        return {
+            snake_weight: parseInt(document.getElementById('snake-weight').value, 10),
+            merge_weight: parseInt(document.getElementById('merge-weight').value, 10),
+            corner_weight: parseInt(document.getElementById('corner-weight').value, 10),
+            ucb1_c: parseFloat(document.getElementById('ucb1-c').value),
+            simulation_count: parseInt(document.getElementById('sim-count').value, 10),
+            max_depth: parseInt(document.getElementById('max-depth').value, 10)
+        };
+    }
+
     async getAIMove() {
         // 调用后端Python算法
         try {
+            let body = {
+                grid: this.grid,
+                score: this.score
+            };
+            if (this.currentAlgorithm === 'mcts') {
+                Object.assign(body, this.getMCTSParams());
+            }
             const response = await fetch(`/api/ai_move/${this.currentAlgorithm}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    grid: this.grid,
-                    score: this.score
-                })
+                body: JSON.stringify(body)
             });
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
             const data = await response.json();
             console.log('Backend AI response:', data);
             return data.direction;
@@ -471,6 +486,8 @@ class Game2048 {
                 return this.getCornerMove();
             case 'expectimax':
                 return this.getExpectimaxMove();
+            case 'mcts':
+                return this.getAIMoveFromServer('mcts');
             default:
                 return this.getRandomMove();
         }
@@ -870,6 +887,35 @@ class Game2048 {
             this.autoPlayInterval = null;
         }
     }
+
+    async getAIMoveFromServer(algorithm) {
+        try {
+            let body = {
+                grid: this.grid,
+                score: this.score
+            };
+            if (algorithm === 'mcts') {
+                Object.assign(body, this.getMCTSParams());
+            }
+            const response = await fetch(`/api/ai_move/${algorithm}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Backend AI response:', data);
+            return data.direction;
+        } catch (error) {
+            console.error('Error calling backend AI:', error);
+            // 如果后端调用失败，回退到前端算法
+            return this.getRandomMove();
+        }
+    }
 }
 
 // 游戏初始化
@@ -936,4 +982,21 @@ window.addEventListener('load', function() {
         // 再次确保显示正确
         game.updateDisplay();
     }
+});
+
+// 参数面板滑块事件监听
+window.addEventListener('DOMContentLoaded', function() {
+    const paramIds = [
+        'snake-weight', 'merge-weight', 'corner-weight', 'ucb1-c', 'sim-count', 'max-depth'
+    ];
+    paramIds.forEach(id => {
+        const slider = document.getElementById(id);
+        const valueSpan = document.getElementById(id + '-value');
+        if (slider && valueSpan) {
+            slider.addEventListener('input', function() {
+                valueSpan.textContent = slider.value;
+            });
+            valueSpan.textContent = slider.value;
+        }
+    });
 });

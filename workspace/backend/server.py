@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import os
 from game_2048 import Game2048
-from ai_solver import AI2048Solver, GreedyAI, RandomAI, CornerAI
+from ai_solver import AI2048Solver, GreedyAI, RandomAI, CornerAI, MCTSAI
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
@@ -95,6 +95,14 @@ def ai_move_by_type(ai_type):
             direction = random_ai.get_best_move(game)
         elif ai_type == 'corner':
             direction = corner_ai.get_best_move(game)
+        elif ai_type == 'mcts':
+            # 支持前端参数
+            mcts_kwargs = {}
+            for k in ['snake_weight', 'merge_weight', 'corner_weight', 'ucb1_c', 'simulation_count', 'max_depth']:
+                if k in data:
+                    mcts_kwargs[k] = data[k]
+            mcts_ai = MCTSAI(**mcts_kwargs)
+            direction = mcts_ai.get_best_move(game)
         else:
             return jsonify({'error': f'未知的AI类型: {ai_type}'}), 400
         

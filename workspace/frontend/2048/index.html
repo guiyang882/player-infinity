@@ -48,6 +48,43 @@
             <button class="ai-button" onclick="game.stopAutoPlay()">停止自动</button>
         </div>
 
+        <!-- MCTS 参数调节浮动面板 -->
+        <div class="mcts-param-float-box">
+            <div class="mcts-params-panel" id="mcts-params-panel">
+                <h4>MCTS 参数调节</h4>
+                <div class="param-row">
+                    <label for="snake-weight">蛇形权重：</label>
+                    <input type="range" id="snake-weight" min="0" max="1000" value="200" step="10">
+                    <span id="snake-weight-value">200</span>
+                </div>
+                <div class="param-row">
+                    <label for="merge-weight">合并潜力权重：</label>
+                    <input type="range" id="merge-weight" min="0" max="500" value="100" step="5">
+                    <span id="merge-weight-value">100</span>
+                </div>
+                <div class="param-row">
+                    <label for="corner-weight">角落奖励权重：</label>
+                    <input type="range" id="corner-weight" min="0" max="2000" value="600" step="20">
+                    <span id="corner-weight-value">600</span>
+                </div>
+                <div class="param-row">
+                    <label for="ucb1-c">UCB1探索参数：</label>
+                    <input type="range" id="ucb1-c" min="0.5" max="3.0" value="1.8" step="0.1">
+                    <span id="ucb1-c-value">1.8</span>
+                </div>
+                <div class="param-row">
+                    <label for="sim-count">模拟次数：</label>
+                    <input type="range" id="sim-count" min="100" max="2000" value="800" step="50">
+                    <span id="sim-count-value">800</span>
+                </div>
+                <div class="param-row">
+                    <label for="max-depth">模拟深度：</label>
+                    <input type="range" id="max-depth" min="10" max="100" value="40" step="2">
+                    <span id="max-depth-value">40</span>
+                </div>
+            </div>
+        </div>
+
         <div class="current-algorithm" id="current-algorithm">
             当前算法: 随机算法
         </div>
@@ -77,6 +114,10 @@
             <div class="algorithm-option" data-algorithm="expectimax">
                 <h4>期望值算法</h4>
                 <p>计算每种移动的期望分数，选择最优策略（较慢但效果好）</p>
+            </div>
+            <div class="algorithm-option" data-algorithm="mcts">
+                <h4>蒙特卡洛树搜索</h4>
+                <p>通过大量模拟获得更优解，智能但计算量较大</p>
             </div>
             <div class="algorithm-modal-buttons">
                 <button onclick="game.startAutoPlayWithAlgorithm()">开始自动游戏</button>
