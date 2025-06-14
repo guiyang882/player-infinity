@@ -47,6 +47,9 @@ def ai_move():
         # 创建游戏实例并设置状态
         game = Game2048()
         game.set_grid(grid, score)
+        # 如果游戏已结束，直接返回 None
+        if hasattr(game, 'game_over') and game.game_over:
+            return jsonify({'direction': None, 'ai_type': 'expectimax'})
         
         # 获取AI建议
         direction = ai_solver.get_best_move(game)
@@ -84,6 +87,9 @@ def ai_move_by_type(ai_type):
         # 创建游戏实例并设置状态
         game = Game2048()
         game.set_grid(grid, score)
+        # 如果游戏已结束，直接返回 None
+        if hasattr(game, 'game_over') and game.game_over:
+            return jsonify({'direction': None, 'ai_type': ai_type})
         
         # 选择AI类型
         direction = None

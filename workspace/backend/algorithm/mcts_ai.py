@@ -4,6 +4,7 @@ import copy
 from typing import List, Optional, Dict, Tuple
 import sys
 import os
+import numpy as np
 
 # 添加父目录到path以便导入game_2048
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -136,98 +137,134 @@ def _simulate_once_for_pool(args):
     import math
     import random
     import traceback
-    from game_2048 import Game2048
     try:
         if len(args) == 4:
             grid, score, max_depth, rollout_params = args
         else:
             grid, score, max_depth = args
             rollout_params = {'snake_weight': 200, 'merge_weight': 100, 'corner_weight': 600}
-        # 只创建一次 Game2048 实例，避免多余深拷贝
-        sim_game = Game2048()
-        sim_game.set_grid(grid, score)
+        np_grid = np.array(grid, dtype=np.int32)
+        cur_score = score
         depth = 0
-        while depth < max_depth and not sim_game.game_over:
-            valid_moves = sim_game.get_valid_moves()
+        while depth < max_depth:
+            valid_moves = _get_valid_moves_np(np_grid)
             if not valid_moves:
                 break
             if depth < 5:
                 best_move = None
                 best_score = -float('inf')
-                # 只对 valid_moves 做一次浅拷贝，避免多余 clone
                 for move in valid_moves:
-                    test_game = Game2048()
-                    test_game.set_grid(sim_game.grid, sim_game.score)
-                    test_game.move(move)
-                    score = _evaluate(test_game, rollout_params)
-                    if _is_max_in_corner(test_game):
-                        score += 1000
-                    score += _corner_weight(test_game, rollout_params)
-                    score += _calc_monotonicity(test_game.grid) * 10
-                    score += _snake_bonus(test_game.grid, rollout_params)
-                    score += _merge_potential(test_game.grid, rollout_params)
-                    if score > best_score:
-                        best_score = score
+                    test_grid, test_score = _move_np(np_grid, cur_score, move)
+                    score_eval = _evaluate_np(test_grid, test_score, rollout_params)
+                    if score_eval > best_score:
+                        best_score = score_eval
                         best_move = move
                 if best_move is None:
                     best_move = random.choice(valid_moves)
-                assert best_move in valid_moves, f"best_move {best_move} 不在 valid_moves {valid_moves}"
-                sim_game.move(best_move)
+                np_grid, cur_score = _move_np(np_grid, cur_score, best_move)
             else:
                 move = random.choice(valid_moves)
-                sim_game.move(move)
-            if sim_game.game_over:
+                np_grid, cur_score = _move_np(np_grid, cur_score, move)
+            if _is_game_over_np(np_grid):
                 break
             depth += 1
-        return _evaluate(sim_game, rollout_params)
+        return _evaluate_np(np_grid, cur_score, rollout_params)
     except Exception as e:
-        print(f"[MCTS-Worker] 模拟异常: {e}\n{traceback.format_exc()}")
+        print(f"[MCTS-Worker-NP] 模拟异常: {e}\n{traceback.format_exc()}")
         return -1
 
-def _corner_weight(game, rollout_params):
-    max_tile = game.get_max_tile()
-    corner_weight = rollout_params.get('corner_weight', 600)
-    bonus = 0
-    if game.grid[3][0] == max_tile:
-        bonus += corner_weight
-    if game.grid[3][3] == max_tile:
-        bonus += corner_weight
-    return bonus
-
-# 智能评估函数：分数+最大方块+空格+单调性+角落+平滑性
-
-def _evaluate(game, rollout_params=None):
-    grid = game.grid
-    score = game.score
-    max_tile = game.get_max_tile()
-    empty_cells = len(game.get_empty_cells())
-    monotonicity = _calc_monotonicity(grid)
-    smoothness = _calc_smoothness(grid)
-    corner_bonus = 500 if _is_max_in_corner(game) else 0
-    if rollout_params is None:
-        rollout_params = {'snake_weight': 200, 'merge_weight': 100, 'corner_weight': 600}
-    corner_bonus += _corner_weight(game, rollout_params)
-    snake_bonus = _snake_bonus(grid, rollout_params)
-    merge_potential = _merge_potential(grid, rollout_params)
+def _evaluate_np(grid, score, rollout_params):
+    max_tile = np.max(grid)
+    empty_cells = np.sum(grid == 0)
+    monotonicity = _calc_monotonicity_np(grid)
+    smoothness = _calc_smoothness_np(grid)
+    corner_bonus = 500 if _is_max_in_corner_np(grid) else 0
+    corner_bonus += _corner_weight_np(grid, rollout_params)
+    snake_bonus = _snake_bonus_np(grid, rollout_params)
+    merge_potential = _merge_potential_np(grid, rollout_params)
     return (score + max_tile * 100 + empty_cells * 20 + monotonicity * 10 + smoothness * 2 + corner_bonus
             + snake_bonus + merge_potential)
 
-def _is_max_in_corner(game):
-    max_tile = game.get_max_tile()
-    corners = [game.grid[0][0], game.grid[0][3], game.grid[3][0], game.grid[3][3]]
+def _get_valid_moves_np(grid):
+    moves = []
+    for move in ['up', 'down', 'left', 'right']:
+        new_grid, _ = _move_np(grid, 0, move)
+        if not np.array_equal(new_grid, grid):
+            moves.append(move)
+    return moves
+
+def _move_np(grid, score, direction):
+    g = grid.copy()
+    s = score
+    if direction == 'left':
+        for i in range(4):
+            row = g[i][g[i] != 0]
+            merged = []
+            skip = False
+            j = 0
+            while j < len(row):
+                if not skip and j+1 < len(row) and row[j] == row[j+1]:
+                    merged.append(row[j]*2)
+                    s += row[j]*2
+                    skip = True
+                else:
+                    if not skip:
+                        merged.append(row[j])
+                    skip = False
+                j += 1 if not skip else 2
+            merged += [0]*(4-len(merged))
+            g[i] = merged
+    elif direction == 'right':
+        g = np.fliplr(g)
+        g, s = _move_np(g, s, 'left')
+        g = np.fliplr(g)
+    elif direction == 'up':
+        g = g.T
+        g, s = _move_np(g, s, 'left')
+        g = g.T
+    elif direction == 'down':
+        g = g.T
+        g, s = _move_np(g, s, 'right')
+        g = g.T
+    return g, s
+
+def _is_game_over_np(grid):
+    if np.any(grid == 0):
+        return False
+    for i in range(4):
+        for j in range(3):
+            if grid[i, j] == grid[i, j+1]:
+                return False
+    for j in range(4):
+        for i in range(3):
+            if grid[i, j] == grid[i+1, j]:
+                return False
+    return True
+
+def _is_max_in_corner_np(grid):
+    max_tile = np.max(grid)
+    corners = [grid[0,0], grid[0,3], grid[3,0], grid[3,3]]
     return max_tile in corners
 
-def _calc_monotonicity(grid):
+def _corner_weight_np(grid, rollout_params):
+    max_tile = np.max(grid)
+    corner_weight = rollout_params.get('corner_weight', 600)
+    bonus = 0
+    if grid[3,0] == max_tile:
+        bonus += corner_weight
+    if grid[3,3] == max_tile:
+        bonus += corner_weight
+    return bonus
+
+def _calc_monotonicity_np(grid):
     mono = 0
-    # 行
     for row in grid:
-        mono += _mono_line(row)
-    # 列
-    for col in zip(*grid):
-        mono += _mono_line(col)
+        mono += _mono_line_np(row)
+    for col in grid.T:
+        mono += _mono_line_np(col)
     return mono
 
-def _mono_line(line):
+def _mono_line_np(line):
     inc = dec = 0
     for i in range(3):
         if line[i] > line[i+1]:
@@ -236,21 +273,21 @@ def _mono_line(line):
             inc += line[i+1] - line[i]
     return -min(inc, dec)
 
-def _calc_smoothness(grid):
+def _calc_smoothness_np(grid):
     smooth = 0
     for i in range(4):
         for j in range(4):
-            if grid[i][j] == 0:
+            if grid[i,j] == 0:
                 continue
-            v = math.log2(grid[i][j]) if grid[i][j] > 0 else 0
+            v = math.log2(grid[i,j]) if grid[i,j] > 0 else 0
             for dx, dy in [(0,1),(1,0)]:
                 ni, nj = i+dx, j+dy
-                if 0<=ni<4 and 0<=nj<4 and grid[ni][nj]>0:
-                    nv = math.log2(grid[ni][nj])
+                if 0<=ni<4 and 0<=nj<4 and grid[ni,nj]>0:
+                    nv = math.log2(grid[ni,nj])
                     smooth -= abs(v-nv)
     return smooth
 
-def _snake_bonus(grid, rollout_params):
+def _snake_bonus_np(grid, rollout_params):
     snake_weight = rollout_params.get('snake_weight', 200)
     snake_order = [
         (3,0),(3,1),(3,2),(3,3),
@@ -260,21 +297,21 @@ def _snake_bonus(grid, rollout_params):
     ]
     bonus = 0
     for idx, (i,j) in enumerate(snake_order):
-        if grid[i][j] > 0:
-            bonus += grid[i][j] * (len(snake_order)-idx) * snake_weight // (2**idx)
+        if grid[i,j] > 0:
+            bonus += grid[i,j] * (len(snake_order)-idx) * snake_weight // (2**idx)
     return bonus // 1000
 
-def _merge_potential(grid, rollout_params):
+def _merge_potential_np(grid, rollout_params):
     merge_weight = rollout_params.get('merge_weight', 100)
     potential = 0
     for i in range(4):
         for j in range(3):
-            if grid[i][j] == grid[i][j+1] and grid[i][j] != 0:
-                potential += math.log2(grid[i][j])
+            if grid[i,j] == grid[i,j+1] and grid[i,j] != 0:
+                potential += math.log2(grid[i,j])
     for j in range(4):
         for i in range(3):
-            if grid[i][j] == grid[i+1][j] and grid[i][j] != 0:
-                potential += math.log2(grid[i][j])
+            if grid[i,j] == grid[i+1,j] and grid[i,j] != 0:
+                potential += math.log2(grid[i,j])
     return int(potential * merge_weight)
 
     def _simulate(self, game: Game2048) -> float:

@@ -1,3 +1,5 @@
+# This file marks the algorithm directory as a Python package.
+
 from .base_ai import BaseAI
 from .expectimax_ai import ExpectimaxAI
 from .greedy_ai import GreedyAI
