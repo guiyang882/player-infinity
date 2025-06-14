@@ -187,7 +187,7 @@ def calc_smoothness(np.ndarray[np.int32_t, ndim=2] grid):
 def snake_bonus_func(np.ndarray[np.int32_t, ndim=2] grid, dict rollout_params):
     cdef int snake_weight = rollout_params.get('snake_weight', 200)
     cdef int idx, i, j
-    cdef int bonus = 0
+    cdef double bonus = 0.0
     cdef list snake_order = [
         (3,0),(3,1),(3,2),(3,3),
         (2,3),(2,2),(2,1),(2,0),
@@ -196,8 +196,8 @@ def snake_bonus_func(np.ndarray[np.int32_t, ndim=2] grid, dict rollout_params):
     ]
     for idx, (i, j) in enumerate(snake_order):
         if grid[i, j] > 0:
-            bonus += grid[i, j] * (len(snake_order)-idx) * snake_weight // (2**idx)
-    return bonus // 1000
+            bonus += grid[i, j] * (len(snake_order)-idx) * snake_weight / (2**idx)
+    return int(bonus)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

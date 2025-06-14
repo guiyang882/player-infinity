@@ -5,6 +5,16 @@ from typing import List, Optional, Dict, Tuple
 import sys
 import os
 import numpy as np
+try:
+    import sys
+    import os
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../cpython')))
+    from cython_mcts import rollout_simulation
+    print("[MCTS] Cython加速模块已加载。")
+except ImportError as e:
+    print("[MCTS] Cython加速模块未加载，回退到纯Python实现。")
+    def rollout_simulation(grid, score, max_depth, rollout_params):
+         return _simulate_once_for_pool((grid, score, max_depth, rollout_params))
 
 # 添加父目录到path以便导入game_2048
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -79,7 +89,7 @@ class MCTSAI(BaseAI):
         self.last_root = None  # 持久化树根
     
     def get_best_move(self, game: Game2048) -> Optional[str]:
-        """串行MCTS+树持久化+UCT剪枝预留"""
+        """串行MCTS+树持久化+UCT剪枝预留，使用 cython_mcts.rollout_simulation 加速模拟"""
         if not game.get_valid_moves():
             return None
         # 树持久化：如果有last_root且能匹配当前局面，则复用
@@ -109,7 +119,7 @@ class MCTSAI(BaseAI):
                     # UCT剪枝预留：可在此处加top_k或阈值筛选
                     children = list(node.children.items())
                     if self.uct_top_k:
-                        children = sorted(children, key=lambda x: x[1].ucb1(self.ucb1_c), reverse=True)[:self.uct_top_k]
+                        children = (sorted(children, key=lambda x: x[1].ucb1(self.ucb1_c), reverse=True)[:self.uct_top_k])
                     if self.ucb1_threshold:
                         children = [c for c in children if c[1].ucb1(self.ucb1_c) >= self.ucb1_threshold]
                     if not children:
@@ -120,9 +130,9 @@ class MCTSAI(BaseAI):
                     if expanded:
                         _, node = expanded
                 nodes_to_rollout.append(node)
-            # 串行rollout
+            # 串行rollout，调用 cython_mcts.rollout_simulation 加速
             for node in nodes_to_rollout:
-                value = _simulate_once_for_pool((node.game_state.grid, node.game_state.score, self.max_depth, rollout_params))
+                value = rollout_simulation(node.game_state.grid, node.game_state.score, self.max_depth, rollout_params)
                 node.update(value)
             sims_left -= batch
         # 树持久化：保存本轮root
@@ -132,187 +142,6 @@ class MCTSAI(BaseAI):
         valid_moves = game.get_valid_moves()
         print("[MCTS] 没有子节点，返回随机合法移动。")
         return random.choice(valid_moves) if valid_moves else None
-
-def _simulate_once_for_pool(args):
-    import math
-    import random
-    import traceback
-    try:
-        if len(args) == 4:
-            grid, score, max_depth, rollout_params = args
-        else:
-            grid, score, max_depth = args
-            rollout_params = {'snake_weight': 200, 'merge_weight': 100, 'corner_weight': 600}
-        np_grid = np.array(grid, dtype=np.int32)
-        cur_score = score
-        depth = 0
-        while depth < max_depth:
-            valid_moves = _get_valid_moves_np(np_grid)
-            if not valid_moves:
-                break
-            if depth < 5:
-                best_move = None
-                best_score = -float('inf')
-                for move in valid_moves:
-                    test_grid, test_score = _move_np(np_grid, cur_score, move)
-                    score_eval = _evaluate_np(test_grid, test_score, rollout_params)
-                    if score_eval > best_score:
-                        best_score = score_eval
-                        best_move = move
-                if best_move is None:
-                    best_move = random.choice(valid_moves)
-                np_grid, cur_score = _move_np(np_grid, cur_score, best_move)
-            else:
-                move = random.choice(valid_moves)
-                np_grid, cur_score = _move_np(np_grid, cur_score, move)
-            if _is_game_over_np(np_grid):
-                break
-            depth += 1
-        return _evaluate_np(np_grid, cur_score, rollout_params)
-    except Exception as e:
-        print(f"[MCTS-Worker-NP] 模拟异常: {e}\n{traceback.format_exc()}")
-        return -1
-
-def _evaluate_np(grid, score, rollout_params):
-    max_tile = np.max(grid)
-    empty_cells = np.sum(grid == 0)
-    monotonicity = _calc_monotonicity_np(grid)
-    smoothness = _calc_smoothness_np(grid)
-    corner_bonus = 500 if _is_max_in_corner_np(grid) else 0
-    corner_bonus += _corner_weight_np(grid, rollout_params)
-    snake_bonus = _snake_bonus_np(grid, rollout_params)
-    merge_potential = _merge_potential_np(grid, rollout_params)
-    return (score + max_tile * 100 + empty_cells * 20 + monotonicity * 10 + smoothness * 2 + corner_bonus
-            + snake_bonus + merge_potential)
-
-def _get_valid_moves_np(grid):
-    moves = []
-    for move in ['up', 'down', 'left', 'right']:
-        new_grid, _ = _move_np(grid, 0, move)
-        if not np.array_equal(new_grid, grid):
-            moves.append(move)
-    return moves
-
-def _move_np(grid, score, direction):
-    g = grid.copy()
-    s = score
-    if direction == 'left':
-        for i in range(4):
-            row = g[i][g[i] != 0]
-            merged = []
-            skip = False
-            j = 0
-            while j < len(row):
-                if not skip and j+1 < len(row) and row[j] == row[j+1]:
-                    merged.append(row[j]*2)
-                    s += row[j]*2
-                    skip = True
-                else:
-                    if not skip:
-                        merged.append(row[j])
-                    skip = False
-                j += 1 if not skip else 2
-            merged += [0]*(4-len(merged))
-            g[i] = merged
-    elif direction == 'right':
-        g = np.fliplr(g)
-        g, s = _move_np(g, s, 'left')
-        g = np.fliplr(g)
-    elif direction == 'up':
-        g = g.T
-        g, s = _move_np(g, s, 'left')
-        g = g.T
-    elif direction == 'down':
-        g = g.T
-        g, s = _move_np(g, s, 'right')
-        g = g.T
-    return g, s
-
-def _is_game_over_np(grid):
-    if np.any(grid == 0):
-        return False
-    for i in range(4):
-        for j in range(3):
-            if grid[i, j] == grid[i, j+1]:
-                return False
-    for j in range(4):
-        for i in range(3):
-            if grid[i, j] == grid[i+1, j]:
-                return False
-    return True
-
-def _is_max_in_corner_np(grid):
-    max_tile = np.max(grid)
-    corners = [grid[0,0], grid[0,3], grid[3,0], grid[3,3]]
-    return max_tile in corners
-
-def _corner_weight_np(grid, rollout_params):
-    max_tile = np.max(grid)
-    corner_weight = rollout_params.get('corner_weight', 600)
-    bonus = 0
-    if grid[3,0] == max_tile:
-        bonus += corner_weight
-    if grid[3,3] == max_tile:
-        bonus += corner_weight
-    return bonus
-
-def _calc_monotonicity_np(grid):
-    mono = 0
-    for row in grid:
-        mono += _mono_line_np(row)
-    for col in grid.T:
-        mono += _mono_line_np(col)
-    return mono
-
-def _mono_line_np(line):
-    inc = dec = 0
-    for i in range(3):
-        if line[i] > line[i+1]:
-            dec += line[i] - line[i+1]
-        else:
-            inc += line[i+1] - line[i]
-    return -min(inc, dec)
-
-def _calc_smoothness_np(grid):
-    smooth = 0
-    for i in range(4):
-        for j in range(4):
-            if grid[i,j] == 0:
-                continue
-            v = math.log2(grid[i,j]) if grid[i,j] > 0 else 0
-            for dx, dy in [(0,1),(1,0)]:
-                ni, nj = i+dx, j+dy
-                if 0<=ni<4 and 0<=nj<4 and grid[ni,nj]>0:
-                    nv = math.log2(grid[ni,nj])
-                    smooth -= abs(v-nv)
-    return smooth
-
-def _snake_bonus_np(grid, rollout_params):
-    snake_weight = rollout_params.get('snake_weight', 200)
-    snake_order = [
-        (3,0),(3,1),(3,2),(3,3),
-        (2,3),(2,2),(2,1),(2,0),
-        (1,0),(1,1),(1,2),(1,3),
-        (0,3),(0,2),(0,1),(0,0)
-    ]
-    bonus = 0
-    for idx, (i,j) in enumerate(snake_order):
-        if grid[i,j] > 0:
-            bonus += grid[i,j] * (len(snake_order)-idx) * snake_weight // (2**idx)
-    return bonus // 1000
-
-def _merge_potential_np(grid, rollout_params):
-    merge_weight = rollout_params.get('merge_weight', 100)
-    potential = 0
-    for i in range(4):
-        for j in range(3):
-            if grid[i,j] == grid[i,j+1] and grid[i,j] != 0:
-                potential += math.log2(grid[i,j])
-    for j in range(4):
-        for i in range(3):
-            if grid[i,j] == grid[i+1,j] and grid[i,j] != 0:
-                potential += math.log2(grid[i,j])
-    return int(potential * merge_weight)
 
     def _simulate(self, game: Game2048) -> float:
         """第1步用贪心+角落优先，其余全随机，提升速度"""
