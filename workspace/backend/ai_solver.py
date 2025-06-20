@@ -6,6 +6,7 @@
 """
 
 from algorithm import ExpectimaxAI, GreedyAI, RandomAI, CornerAI, MCTSAI, config
+from algorithm.dqn import RLAI
 
 # 为了保持向后兼容性，重新导出原有的类名
 AI2048Solver = ExpectimaxAI
@@ -39,7 +40,8 @@ def create_ai(algorithm_name: str, **kwargs):
         'greedy': GreedyAI,
         'random': RandomAI,
         'corner': CornerAI,
-        'mcts': MCTSAI
+        'mcts': MCTSAI,
+        'dqn': RLAI
     }
     
     if algorithm_name.lower() not in algorithms:

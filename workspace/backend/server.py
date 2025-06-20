@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 from game_2048 import Game2048
 from ai_solver import AI2048Solver, GreedyAI, RandomAI, CornerAI, MCTSAI
+from algorithm.dqn import RLAI
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
@@ -12,6 +13,7 @@ ai_solver = AI2048Solver(max_depth=4)
 greedy_ai = GreedyAI()
 random_ai = RandomAI()
 corner_ai = CornerAI()
+dqn_ai = None  # 延迟初始化DQN以避免启动时间过长
 
 @app.route('/')
 def index():
@@ -109,6 +111,13 @@ def ai_move_by_type(ai_type):
                     mcts_kwargs[k] = data[k]
             mcts_ai = MCTSAI(**mcts_kwargs)
             direction = mcts_ai.get_best_move(game)
+        elif ai_type == 'dqn':
+            global dqn_ai
+            if dqn_ai is None:
+                print("初始化DQN AI...")
+                dqn_ai = RLAI(training_mode=False)
+                print("DQN AI初始化完成")
+            direction = dqn_ai.get_best_move(game)
         else:
             return jsonify({'error': f'未知的AI类型: {ai_type}'}), 400
         

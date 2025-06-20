@@ -416,7 +416,8 @@ class Game2048 {
             'greedy': '贪心算法',
             'corner': '角落策略',
             'expectimax': '期望值算法',
-            'mcts': '蒙特卡洛树搜索'
+            'mcts': '蒙特卡洛树搜索',
+            'dqn': '深度Q网络(DQN)'
         };
         const currentAlgorithmElement = document.getElementById('current-algorithm');
         if (currentAlgorithmElement) {
@@ -488,6 +489,10 @@ class Game2048 {
                 return this.getExpectimaxMove();
             case 'mcts':
                 return this.getAIMoveFromServer('mcts');
+            case 'dqn':
+                // DQN需要后端支持，如果后端不可用则使用贪心算法作为备用
+                console.log('DQN requires backend support, falling back to greedy algorithm');
+                return this.getGreedyMove();
             default:
                 return this.getRandomMove();
         }
