@@ -1,4 +1,8 @@
 Flask>=2.3.3
 Flask-CORS>=4.0.0
 numpy>=1.21.0
-matplotlib==3.7.2 
+matplotlib==3.7.2
+# 强化学习相关依赖 (可选)
+torch>=1.12.0
+torchvision>=0.13.0
+python-dotenv>=1.1.0 

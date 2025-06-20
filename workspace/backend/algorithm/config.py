@@ -53,5 +53,12 @@ ALGORITHM_INFO = {
         'description': '蒙特卡洛树搜索算法 - 通过模拟获得更优解',
         'complexity': 'High',
         'performance': 'Excellent'
+    },
+    'rl': {
+        'name': 'RL AI (DQN)',
+        'description': '强化学习AI - 基于深度Q网络(DQN)的智能算法',
+        'complexity': 'Very High',
+        'performance': 'Excellent',
+        'requires': 'PyTorch'
     }
 } 
